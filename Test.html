@@ -1,0 +1,21 @@
+<html>
+<head>
+    <style>
+    /* you can style your program here */
+    </style>
+    <script src="Test.js"></script>
+</head>
+<body>
+        <div id="elm"></div>
+        <script>
+        var app = Elm.Main.init({
+            node: document.getElementById('elm')
+        });
+        app.ports.fetchFocused.subscribe(function() {
+            var id = document.activeElement ? document.activeElement.id : null;
+            console.log("focused: ", id);
+            app.ports.focusedFetched.send(id);
+        });
+        </script>
+</body>
+</html>
