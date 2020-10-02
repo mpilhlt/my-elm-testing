@@ -4,6 +4,8 @@ import Browser
 import Browser.Dom
 import Browser.Events
 import Element
+import Element.Background
+import Element.Border
 import Element.Input
 import Html
 import Html.Attributes
@@ -161,9 +163,18 @@ completionsMenuViewConfig =
                 , Html.Attributes.id suggestion.phrase
                 , if keySelected || mouseSelected then
                     Html.Attributes.style "font-weight" "bold"
-
                   else
                     Html.Attributes.style "font-weight" "normal"
+{-
+                , if keySelected || mouseSelected then
+                    Html.Attributes.style "background-color" "black"
+                  else
+                    Html.Attributes.style "background-color" "white"
+                , if keySelected || mouseSelected then
+                    Html.Attributes.style "color" "white"
+                  else
+                    Html.Attributes.style "color" "black"
+-}
                 ]
             , children = [ Html.text suggestion.phrase ]
             }
@@ -172,6 +183,10 @@ completionsMenuViewConfig =
     , ul =
         [ Html.Attributes.class "autocomplete-list"
         , Html.Attributes.style "list-style-type" "none"
+        , Html.Attributes.style "margin-left" "-1em"
+        , Html.Attributes.style "margin-right" "1em"
+        , Html.Attributes.style "margin-top" "0.3em"
+        , Html.Attributes.style "margin-bottom" "0.3em"
         ]
     , li = customizedLi
     }
@@ -200,6 +215,10 @@ fieldnamesMenuViewConfig =
     , ul =
         [ Html.Attributes.class "autocomplete-list"
         , Html.Attributes.style "list-style-type" "none"
+        , Html.Attributes.style "margin-left" "-1.5em"
+        , Html.Attributes.style "margin-right" "0.5em"
+        , Html.Attributes.style "margin-top" "0.2em"
+        , Html.Attributes.style "margin-bottom" "0.2em"
         ]
     , li = customizedLi
     }
@@ -292,7 +311,7 @@ type Msg
     | SetState FormField MenuMode MenuMsg
     | Submit
     | UserTypedText FormField MenuMode String
-
+    | UserSelectedMode FormField String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -647,13 +666,31 @@ update msg model =
                 oldForm =
                     crit.form
 
+                newMode =
+                    if String.length newString > 0 then
+                        case crit.mode of
+                            "" ->
+                                "and"
+
+                            _ ->
+                                crit.mode
+
+                    else
+                        crit.mode
+
                 newShow =
                     case mode of
                         Completions ->
-                            not (List.isEmpty (acceptableSuggestions newString .phrase oldForm.completionsOptions))
+                            if String.length newString > 0 then
+                                not (List.isEmpty (acceptableSuggestions newString .phrase oldForm.completionsOptions))
+                            else
+                                False
 
                         Fieldnames ->
-                            not (List.isEmpty (acceptableSuggestions newString identity oldForm.fieldnamesOptions))
+                            if String.length newString > 0 then
+                                not (List.isEmpty (acceptableSuggestions newString identity oldForm.fieldnamesOptions))
+                            else
+                                False
 
 
                 newForm =
@@ -678,14 +715,29 @@ update msg model =
                             { crit
                                 | searchPhrase = newString
                                 , form = newForm
+                                , mode = newMode
                             }
 
                         Fieldnames ->
                             { crit
                                 | fieldName = newString
                                 , form = newForm
+                                , mode = newMode
                             }
 
+                newModel =
+                    setCritToSearch formField newField model
+            in
+            ( newModel, Cmd.none )
+
+        UserSelectedMode formField string ->
+            let
+                crit =
+                    getCritFromSearch formField model
+
+                newField =
+                    { crit | mode = string}
+                
                 newModel =
                     setCritToSearch formField newField model
             in
@@ -803,8 +855,8 @@ getNextItemId ids selectedId =
 
 
 
--- === View ===
 
+-- === View ===
 
 {-| In our view, we want to have several criteria each of which
 consists of (a) a boolean mode in which the criterion is applied,
@@ -822,7 +874,7 @@ view model =
         []
     <|
         Element.column
-            []
+            [ Element.spacing 5 ]
             [ critForm Field1 "name" model
             , critForm Field2 "title" model
             ]
@@ -833,12 +885,22 @@ critForm formField defaultField oldSearch =
     let
         oldField =
             getCritFromSearch formField oldSearch
+
+        htmlModeFieldname =
+            case formField of
+                Field1 ->
+                    "Field1_mode"
+                Field2 ->
+                    "Field2_mode"
+
     in
     Element.row
         [ Element.spacing 5 ]
         [ Element.Input.radio
-            []
-            { onChange = \_ -> NoOp
+            [ Element.htmlAttribute <|
+                Html.Attributes.id htmlModeFieldname 
+            ]
+            { onChange = UserSelectedMode formField
             , selected = Just oldField.mode
             , label = Element.Input.labelAbove [] (Element.text "")
             , options =
@@ -865,7 +927,7 @@ smartFieldField formField defaultValue oldSearch =
                 --              |> Maybe.map identity
                 |> Maybe.withDefault oldField.fieldName
 
-        fieldnameCompletionsMenu =
+        fieldnamesMenu =
             if oldForm.fieldnamesShow then
                 viewFieldnamesMenu formField oldField
 
@@ -881,19 +943,22 @@ smartFieldField formField defaultValue oldSearch =
 
     in
     Element.column
-        [ Element.width (Element.fillPortion 3) ]
-        [ Element.Input.text
+        [ Element.width (Element.fillPortion 3)
+        , Element.below fieldnamesMenu
+        ]
+        [ Element.Input.search
             ([ Element.htmlAttribute <|
                 Html.Events.preventDefaultOn "keydown" (upDownEscDecoder formField Fieldnames oldSearch)
              , Element.htmlAttribute <|
                 Html.Attributes.value query
              , Element.htmlAttribute <|
-                Html.Attributes.id htmlFieldname 
+                Html.Attributes.id htmlFieldname
+             , Element.htmlAttribute <|
+                 Html.Attributes.style "z-index" "0"
              ]
                 ++ onEvent
                     [ ( "keyup", Submit )
                     , ( "focus", FetchFocused )
-                    , ( "blur", FetchFocused )
                     ]
             )
             { onChange = UserTypedText formField Fieldnames
@@ -901,7 +966,6 @@ smartFieldField formField defaultValue oldSearch =
             , placeholder = Just <| Element.Input.placeholder [] <| Element.text defaultValue
             , label = Element.Input.labelAbove [] (Element.text "")
             }
-        , fieldnameCompletionsMenu
         ]
 
 
@@ -935,7 +999,9 @@ smartTextField formField oldSearch =
 
     in
     Element.column
-        [ Element.width (Element.fillPortion 6) ]
+        [ Element.width (Element.fillPortion 6)
+        , Element.below completionsMenu
+        ]
         [ Element.Input.text
             ([ Element.htmlAttribute <|
                 Html.Events.preventDefaultOn "keydown" (upDownEscDecoder formField Completions oldSearch)
@@ -943,11 +1009,12 @@ smartTextField formField oldSearch =
                 Html.Attributes.value query
              , Element.htmlAttribute <|
                 Html.Attributes.id htmlFieldname 
+             , Element.htmlAttribute <|
+                 Html.Attributes.style "z-index" "0"
              ]
                 ++ onEvent
                     [ ( "keyup", Submit )
                     , ( "focus", FetchFocused )
-                    , ( "blur", FetchFocused )
                     ]
             )
             { onChange = UserTypedText formField Completions
@@ -955,7 +1022,6 @@ smartTextField formField oldSearch =
             , placeholder = Just <| Element.Input.placeholder [] <| Element.text "Type your search string"
             , label = Element.Input.labelAbove [] (Element.text "")
             }
-        , completionsMenu
         ]
 
 
@@ -986,9 +1052,39 @@ onEvent l =
         l
 
 
+viewFieldnamesMenu : FormField -> Crit -> Element.Element Msg
+viewFieldnamesMenu formField field =
+    Element.el
+        [ Element.Background.color (Element.rgb 0.96 0.96 0.96)
+        , Element.Border.solid
+        , Element.Border.width 1
+        , Element.Border.color (Element.rgb 0.1 0.1 0.1)        
+        , Element.htmlAttribute <|
+                    Html.Attributes.style "z-index" "99"
+        ]
+        ( Element.html <|
+            Html.div
+                [ Html.Attributes.class "autocomplete-menu" ]
+                [ Html.map (SetState formField Fieldnames) <|
+                    menuView fieldnamesMenuViewConfig
+                        field.form.fieldnamesHowMany
+                        field.form.fieldnamesState
+                        (acceptableSuggestions field.fieldName identity field.form.fieldnamesOptions)
+                ]
+        )
+
+
 viewCompletionsMenu : FormField -> Crit -> Element.Element Msg
 viewCompletionsMenu formField field =
-    Element.html <|
+    Element.el
+        [ Element.Background.color (Element.rgb 0.96 0.96 0.96)
+        , Element.Border.solid
+        , Element.Border.width 1
+        , Element.Border.color (Element.rgb 0 0 0)        
+        , Element.htmlAttribute <|
+                    Html.Attributes.style "z-index" "99"
+        ]
+        ( Element.html <|
         Html.div
             [ Html.Attributes.class "autocomplete-menu" ]
             [ Html.map (SetState formField Completions) <|
@@ -997,19 +1093,7 @@ viewCompletionsMenu formField field =
                     field.form.completionsState
                     (acceptableSuggestions field.searchPhrase .phrase field.form.completionsOptions)
             ]
-
-
-viewFieldnamesMenu : FormField -> Crit -> Element.Element Msg
-viewFieldnamesMenu formField field =
-    Element.html <|
-        Html.div
-            [ Html.Attributes.class "autocomplete-menu" ]
-            [ Html.map (SetState formField Fieldnames) <|
-                menuView fieldnamesMenuViewConfig
-                    field.form.fieldnamesHowMany
-                    field.form.fieldnamesState
-                    (acceptableSuggestions field.fieldName identity field.form.fieldnamesOptions)
-            ]
+        )
 
 
 menuView : MenuViewConfig data -> Int -> MenuState -> List data -> Html.Html MenuMsg

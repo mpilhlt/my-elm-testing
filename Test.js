@@ -11804,20 +11804,32 @@ var $author$project$Main$update = F2(
 					var mode = msg.b;
 					var newString = msg.c;
 					var crit = A2($author$project$Main$getCritFromSearch, formField, model);
+					var newMode = function () {
+						if ($elm$core$String$length(newString) > 0) {
+							var _v25 = crit.mode;
+							if (_v25 === '') {
+								return 'and';
+							} else {
+								return crit.mode;
+							}
+						} else {
+							return crit.mode;
+						}
+					}();
 					var oldForm = crit.form;
 					var newShow = function () {
 						if (mode.$ === 'Completions') {
-							return !$elm$core$List$isEmpty(
+							return ($elm$core$String$length(newString) > 0) ? (!$elm$core$List$isEmpty(
 								A3(
 									$author$project$Main$acceptableSuggestions,
 									newString,
 									function ($) {
 										return $.phrase;
 									},
-									oldForm.completionsOptions));
+									oldForm.completionsOptions))) : false;
 						} else {
-							return !$elm$core$List$isEmpty(
-								A3($author$project$Main$acceptableSuggestions, newString, $elm$core$Basics$identity, oldForm.fieldnamesOptions));
+							return ($elm$core$String$length(newString) > 0) ? (!$elm$core$List$isEmpty(
+								A3($author$project$Main$acceptableSuggestions, newString, $elm$core$Basics$identity, oldForm.fieldnamesOptions))) : false;
 						}
 					}();
 					var newForm = function () {
@@ -11835,13 +11847,22 @@ var $author$project$Main$update = F2(
 						if (mode.$ === 'Completions') {
 							return _Utils_update(
 								crit,
-								{form: newForm, searchPhrase: newString});
+								{form: newForm, mode: newMode, searchPhrase: newString});
 						} else {
 							return _Utils_update(
 								crit,
-								{fieldName: newString, form: newForm});
+								{fieldName: newString, form: newForm, mode: newMode});
 						}
 					}();
+					var newModel = A3($author$project$Main$setCritToSearch, formField, newField, model);
+					return _Utils_Tuple2(newModel, $elm$core$Platform$Cmd$none);
+				case 'UserSelectedMode':
+					var formField = msg.a;
+					var string = msg.b;
+					var crit = A2($author$project$Main$getCritFromSearch, formField, model);
+					var newField = _Utils_update(
+						crit,
+						{mode: string});
 					var newModel = A3($author$project$Main$setCritToSearch, formField, newField, model);
 					return _Utils_Tuple2(newModel, $elm$core$Platform$Cmd$none);
 				case 'NoOp':
@@ -17222,6 +17243,11 @@ var $mdgriffith$elm_ui$Element$column = F2(
 						attrs))),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
+var $author$project$Main$UserSelectedMode = F2(
+	function (a, b) {
+		return {$: 'UserSelectedMode', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Element$htmlAttribute = $mdgriffith$elm_ui$Internal$Model$Attr;
 var $mdgriffith$elm_ui$Element$Input$Above = {$: 'Above'};
 var $mdgriffith$elm_ui$Element$Input$Label = F3(
 	function (a, b, c) {
@@ -17906,8 +17932,23 @@ var $author$project$Main$UserTypedText = F3(
 	function (a, b, c) {
 		return {$: 'UserTypedText', a: a, b: b, c: c};
 	});
+var $mdgriffith$elm_ui$Internal$Model$Below = {$: 'Below'};
+var $mdgriffith$elm_ui$Internal$Model$Nearby = F2(
+	function (a, b) {
+		return {$: 'Nearby', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Element$createNearby = F2(
+	function (loc, element) {
+		if (element.$ === 'Empty') {
+			return $mdgriffith$elm_ui$Internal$Model$NoAttribute;
+		} else {
+			return A2($mdgriffith$elm_ui$Internal$Model$Nearby, loc, element);
+		}
+	});
+var $mdgriffith$elm_ui$Element$below = function (element) {
+	return A2($mdgriffith$elm_ui$Element$createNearby, $mdgriffith$elm_ui$Internal$Model$Below, element);
+};
 var $mdgriffith$elm_ui$Element$fillPortion = $mdgriffith$elm_ui$Internal$Model$Fill;
-var $mdgriffith$elm_ui$Element$htmlAttribute = $mdgriffith$elm_ui$Internal$Model$Attr;
 var $author$project$Main$onEvent = function (l) {
 	return A2(
 		$elm$core$List$map,
@@ -17940,12 +17981,6 @@ var $mdgriffith$elm_ui$Element$Input$Placeholder = F2(
 		return {$: 'Placeholder', a: a, b: b};
 	});
 var $mdgriffith$elm_ui$Element$Input$placeholder = $mdgriffith$elm_ui$Element$Input$Placeholder;
-var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
-	return {$: 'Text', a: a};
-};
-var $mdgriffith$elm_ui$Element$text = function (content) {
-	return $mdgriffith$elm_ui$Internal$Model$Text(content);
-};
 var $mdgriffith$elm_ui$Element$Input$TextInputNode = function (a) {
 	return {$: 'TextInputNode', a: a};
 };
@@ -17955,18 +17990,6 @@ var $mdgriffith$elm_ui$Element$Input$autofill = A2(
 	$mdgriffith$elm_ui$Internal$Model$Attr,
 	$elm$html$Html$Attributes$attribute('autocomplete'));
 var $mdgriffith$elm_ui$Internal$Model$Behind = {$: 'Behind'};
-var $mdgriffith$elm_ui$Internal$Model$Nearby = F2(
-	function (a, b) {
-		return {$: 'Nearby', a: a, b: b};
-	});
-var $mdgriffith$elm_ui$Element$createNearby = F2(
-	function (loc, element) {
-		if (element.$ === 'Empty') {
-			return $mdgriffith$elm_ui$Internal$Model$NoAttribute;
-		} else {
-			return A2($mdgriffith$elm_ui$Internal$Model$Nearby, loc, element);
-		}
-	});
 var $mdgriffith$elm_ui$Element$behindContent = function (element) {
 	return A2($mdgriffith$elm_ui$Element$createNearby, $mdgriffith$elm_ui$Internal$Model$Behind, element);
 };
@@ -18494,6 +18517,12 @@ var $elm$html$Html$Attributes$boolProperty = F2(
 	});
 var $elm$html$Html$Attributes$spellcheck = $elm$html$Html$Attributes$boolProperty('spellcheck');
 var $mdgriffith$elm_ui$Element$Input$spellcheck = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Attributes$spellcheck);
+var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var $mdgriffith$elm_ui$Element$text = function (content) {
+	return $mdgriffith$elm_ui$Internal$Model$Text(content);
+};
 var $mdgriffith$elm_ui$Internal$Model$unstyled = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Unstyled, $elm$core$Basics$always);
 var $mdgriffith$elm_ui$Element$Input$value = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Attributes$value);
 var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
@@ -18741,11 +18770,11 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 			textOptions.label,
 			wrappedInput);
 	});
-var $mdgriffith$elm_ui$Element$Input$text = $mdgriffith$elm_ui$Element$Input$textHelper(
+var $mdgriffith$elm_ui$Element$Input$search = $mdgriffith$elm_ui$Element$Input$textHelper(
 	{
 		autofill: $elm$core$Maybe$Nothing,
 		spellchecked: false,
-		type_: $mdgriffith$elm_ui$Element$Input$TextInputNode('text')
+		type_: $mdgriffith$elm_ui$Element$Input$TextInputNode('search')
 	});
 var $author$project$Main$HandleEscape = F2(
 	function (a, b) {
@@ -18810,7 +18839,11 @@ var $author$project$Main$fieldnamesMenuViewConfig = function () {
 		ul: _List_fromArray(
 			[
 				$elm$html$Html$Attributes$class('autocomplete-list'),
-				A2($elm$html$Html$Attributes$style, 'list-style-type', 'none')
+				A2($elm$html$Html$Attributes$style, 'list-style-type', 'none'),
+				A2($elm$html$Html$Attributes$style, 'margin-left', '-1.5em'),
+				A2($elm$html$Html$Attributes$style, 'margin-right', '0.5em'),
+				A2($elm$html$Html$Attributes$style, 'margin-top', '0.2em'),
+				A2($elm$html$Html$Attributes$style, 'margin-bottom', '0.2em')
 			])
 	};
 }();
@@ -18908,27 +18941,42 @@ var $author$project$Main$menuView = F4(
 				getKeyedItems,
 				A2($elm$core$List$take, howManyToShow, data)));
 	});
+var $mdgriffith$elm_ui$Internal$Flag$borderStyle = $mdgriffith$elm_ui$Internal$Flag$flag(11);
+var $mdgriffith$elm_ui$Element$Border$solid = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$borderStyle, $mdgriffith$elm_ui$Internal$Style$classes.borderSolid);
 var $author$project$Main$viewFieldnamesMenu = F2(
 	function (formField, field) {
-		return $mdgriffith$elm_ui$Element$html(
-			A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('autocomplete-menu')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$map,
-						A2($author$project$Main$SetState, formField, $author$project$Main$Fieldnames),
-						A4(
-							$author$project$Main$menuView,
-							$author$project$Main$fieldnamesMenuViewConfig,
-							field.form.fieldnamesHowMany,
-							field.form.fieldnamesState,
-							A3($author$project$Main$acceptableSuggestions, field.fieldName, $elm$core$Basics$identity, field.form.fieldnamesOptions)))
-					])));
+		return A2(
+			$mdgriffith$elm_ui$Element$el,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$Background$color(
+					A3($mdgriffith$elm_ui$Element$rgb, 0.96, 0.96, 0.96)),
+					$mdgriffith$elm_ui$Element$Border$solid,
+					$mdgriffith$elm_ui$Element$Border$width(1),
+					$mdgriffith$elm_ui$Element$Border$color(
+					A3($mdgriffith$elm_ui$Element$rgb, 0.1, 0.1, 0.1)),
+					$mdgriffith$elm_ui$Element$htmlAttribute(
+					A2($elm$html$Html$Attributes$style, 'z-index', '99'))
+				]),
+			$mdgriffith$elm_ui$Element$html(
+				A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('autocomplete-menu')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$map,
+							A2($author$project$Main$SetState, formField, $author$project$Main$Fieldnames),
+							A4(
+								$author$project$Main$menuView,
+								$author$project$Main$fieldnamesMenuViewConfig,
+								field.form.fieldnamesHowMany,
+								field.form.fieldnamesState,
+								A3($author$project$Main$acceptableSuggestions, field.fieldName, $elm$core$Basics$identity, field.form.fieldnamesOptions)))
+						]))));
 	});
 var $author$project$Main$smartFieldField = F3(
 	function (formField, defaultValue, oldSearch) {
@@ -18942,18 +18990,19 @@ var $author$project$Main$smartFieldField = F3(
 				return 'Field2_fieldName';
 			}
 		}();
-		var fieldnameCompletionsMenu = oldForm.fieldnamesShow ? A2($author$project$Main$viewFieldnamesMenu, formField, oldField) : $mdgriffith$elm_ui$Element$none;
+		var fieldnamesMenu = oldForm.fieldnamesShow ? A2($author$project$Main$viewFieldnamesMenu, formField, oldField) : $mdgriffith$elm_ui$Element$none;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$width(
-					$mdgriffith$elm_ui$Element$fillPortion(3))
+					$mdgriffith$elm_ui$Element$fillPortion(3)),
+					$mdgriffith$elm_ui$Element$below(fieldnamesMenu)
 				]),
 			_List_fromArray(
 				[
 					A2(
-					$mdgriffith$elm_ui$Element$Input$text,
+					$mdgriffith$elm_ui$Element$Input$search,
 					_Utils_ap(
 						_List_fromArray(
 							[
@@ -18965,14 +19014,15 @@ var $author$project$Main$smartFieldField = F3(
 								$mdgriffith$elm_ui$Element$htmlAttribute(
 								$elm$html$Html$Attributes$value(query)),
 								$mdgriffith$elm_ui$Element$htmlAttribute(
-								$elm$html$Html$Attributes$id(htmlFieldname))
+								$elm$html$Html$Attributes$id(htmlFieldname)),
+								$mdgriffith$elm_ui$Element$htmlAttribute(
+								A2($elm$html$Html$Attributes$style, 'z-index', '0'))
 							]),
 						$author$project$Main$onEvent(
 							_List_fromArray(
 								[
 									_Utils_Tuple2('keyup', $author$project$Main$Submit),
-									_Utils_Tuple2('focus', $author$project$Main$FetchFocused),
-									_Utils_Tuple2('blur', $author$project$Main$FetchFocused)
+									_Utils_Tuple2('focus', $author$project$Main$FetchFocused)
 								]))),
 					{
 						label: A2(
@@ -18986,9 +19036,14 @@ var $author$project$Main$smartFieldField = F3(
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$text(defaultValue))),
 						text: oldField.fieldName
-					}),
-					fieldnameCompletionsMenu
+					})
 				]));
+	});
+var $mdgriffith$elm_ui$Element$Input$text = $mdgriffith$elm_ui$Element$Input$textHelper(
+	{
+		autofill: $elm$core$Maybe$Nothing,
+		spellchecked: false,
+		type_: $mdgriffith$elm_ui$Element$Input$TextInputNode('text')
 	});
 var $author$project$Main$completionsMenuViewConfig = function () {
 	var customizedLi = F3(
@@ -19019,37 +19074,54 @@ var $author$project$Main$completionsMenuViewConfig = function () {
 		ul: _List_fromArray(
 			[
 				$elm$html$Html$Attributes$class('autocomplete-list'),
-				A2($elm$html$Html$Attributes$style, 'list-style-type', 'none')
+				A2($elm$html$Html$Attributes$style, 'list-style-type', 'none'),
+				A2($elm$html$Html$Attributes$style, 'margin-left', '-1em'),
+				A2($elm$html$Html$Attributes$style, 'margin-right', '1em'),
+				A2($elm$html$Html$Attributes$style, 'margin-top', '0.3em'),
+				A2($elm$html$Html$Attributes$style, 'margin-bottom', '0.3em')
 			])
 	};
 }();
 var $author$project$Main$viewCompletionsMenu = F2(
 	function (formField, field) {
-		return $mdgriffith$elm_ui$Element$html(
-			A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('autocomplete-menu')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$map,
-						A2($author$project$Main$SetState, formField, $author$project$Main$Completions),
-						A4(
-							$author$project$Main$menuView,
-							$author$project$Main$completionsMenuViewConfig,
-							field.form.completionsHowMany,
-							field.form.completionsState,
-							A3(
-								$author$project$Main$acceptableSuggestions,
-								field.searchPhrase,
-								function ($) {
-									return $.phrase;
-								},
-								field.form.completionsOptions)))
-					])));
+		return A2(
+			$mdgriffith$elm_ui$Element$el,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$Background$color(
+					A3($mdgriffith$elm_ui$Element$rgb, 0.96, 0.96, 0.96)),
+					$mdgriffith$elm_ui$Element$Border$solid,
+					$mdgriffith$elm_ui$Element$Border$width(1),
+					$mdgriffith$elm_ui$Element$Border$color(
+					A3($mdgriffith$elm_ui$Element$rgb, 0, 0, 0)),
+					$mdgriffith$elm_ui$Element$htmlAttribute(
+					A2($elm$html$Html$Attributes$style, 'z-index', '99'))
+				]),
+			$mdgriffith$elm_ui$Element$html(
+				A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('autocomplete-menu')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$map,
+							A2($author$project$Main$SetState, formField, $author$project$Main$Completions),
+							A4(
+								$author$project$Main$menuView,
+								$author$project$Main$completionsMenuViewConfig,
+								field.form.completionsHowMany,
+								field.form.completionsState,
+								A3(
+									$author$project$Main$acceptableSuggestions,
+									field.searchPhrase,
+									function ($) {
+										return $.phrase;
+									},
+									field.form.completionsOptions)))
+						]))));
 	});
 var $author$project$Main$smartTextField = F2(
 	function (formField, oldSearch) {
@@ -19077,7 +19149,8 @@ var $author$project$Main$smartTextField = F2(
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$width(
-					$mdgriffith$elm_ui$Element$fillPortion(6))
+					$mdgriffith$elm_ui$Element$fillPortion(6)),
+					$mdgriffith$elm_ui$Element$below(completionsMenu)
 				]),
 			_List_fromArray(
 				[
@@ -19094,14 +19167,15 @@ var $author$project$Main$smartTextField = F2(
 								$mdgriffith$elm_ui$Element$htmlAttribute(
 								$elm$html$Html$Attributes$value(query)),
 								$mdgriffith$elm_ui$Element$htmlAttribute(
-								$elm$html$Html$Attributes$id(htmlFieldname))
+								$elm$html$Html$Attributes$id(htmlFieldname)),
+								$mdgriffith$elm_ui$Element$htmlAttribute(
+								A2($elm$html$Html$Attributes$style, 'z-index', '0'))
 							]),
 						$author$project$Main$onEvent(
 							_List_fromArray(
 								[
 									_Utils_Tuple2('keyup', $author$project$Main$Submit),
-									_Utils_Tuple2('focus', $author$project$Main$FetchFocused),
-									_Utils_Tuple2('blur', $author$project$Main$FetchFocused)
+									_Utils_Tuple2('focus', $author$project$Main$FetchFocused)
 								]))),
 					{
 						label: A2(
@@ -19115,13 +19189,19 @@ var $author$project$Main$smartTextField = F2(
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$text('Type your search string'))),
 						text: oldField.searchPhrase
-					}),
-					completionsMenu
+					})
 				]));
 	});
 var $author$project$Main$critForm = F3(
 	function (formField, defaultField, oldSearch) {
 		var oldField = A2($author$project$Main$getCritFromSearch, formField, oldSearch);
+		var htmlModeFieldname = function () {
+			if (formField.$ === 'Field1') {
+				return 'Field1_mode';
+			} else {
+				return 'Field2_mode';
+			}
+		}();
 		return A2(
 			$mdgriffith$elm_ui$Element$row,
 			_List_fromArray(
@@ -19132,15 +19212,17 @@ var $author$project$Main$critForm = F3(
 				[
 					A2(
 					$mdgriffith$elm_ui$Element$Input$radio,
-					_List_Nil,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$htmlAttribute(
+							$elm$html$Html$Attributes$id(htmlModeFieldname))
+						]),
 					{
 						label: A2(
 							$mdgriffith$elm_ui$Element$Input$labelAbove,
 							_List_Nil,
 							$mdgriffith$elm_ui$Element$text('')),
-						onChange: function (_v0) {
-							return $author$project$Main$NoOp;
-						},
+						onChange: $author$project$Main$UserSelectedMode(formField),
 						options: _List_fromArray(
 							[
 								A2(
@@ -19419,7 +19501,10 @@ var $author$project$Main$view = function (model) {
 		_List_Nil,
 		A2(
 			$mdgriffith$elm_ui$Element$column,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$spacing(5)
+				]),
 			_List_fromArray(
 				[
 					A3($author$project$Main$critForm, $author$project$Main$Field1, 'name', model),
@@ -19436,4 +19521,4 @@ var $author$project$Main$main = $elm$browser$Browser$element(
 		view: $author$project$Main$view
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"CursorWrap":["Main.FormField","Main.MenuMode","Basics.Bool"],"FetchFocused":[],"Focused":["Maybe.Maybe String.String"],"HandleEscape":["Main.FormField","Main.MenuMode"],"NoOp":[],"PreviewSuggestion":["Main.FormField","Main.MenuMode","String.String"],"Reset":["Main.FormField","Main.MenuMode"],"SelectEntryKeyboard":["Main.FormField","Main.MenuMode","String.String"],"SelectEntryMouse":["Main.FormField","Main.MenuMode","String.String"],"SetSomeState":["Main.MenuMsg"],"SetState":["Main.FormField","Main.MenuMode","Main.MenuMsg"],"Submit":[],"UserTypedText":["Main.FormField","Main.MenuMode","String.String"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Main.FormField":{"args":[],"tags":{"Field1":[],"Field2":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Main.MenuMode":{"args":[],"tags":{"Completions":[],"Fieldnames":[]}},"Main.MenuMsg":{"args":[],"tags":{"MenuKeyDown":["Basics.Int"],"MenuMouseClick":["String.String"],"MenuMouseEnter":["String.String"],"MenuMouseLeave":["String.String"],"MenuWentTooHigh":[],"MenuWentTooLow":[],"NoMenuOp":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"CursorWrap":["Main.FormField","Main.MenuMode","Basics.Bool"],"FetchFocused":[],"Focused":["Maybe.Maybe String.String"],"HandleEscape":["Main.FormField","Main.MenuMode"],"NoOp":[],"PreviewSuggestion":["Main.FormField","Main.MenuMode","String.String"],"Reset":["Main.FormField","Main.MenuMode"],"SelectEntryKeyboard":["Main.FormField","Main.MenuMode","String.String"],"SelectEntryMouse":["Main.FormField","Main.MenuMode","String.String"],"SetSomeState":["Main.MenuMsg"],"SetState":["Main.FormField","Main.MenuMode","Main.MenuMsg"],"Submit":[],"UserTypedText":["Main.FormField","Main.MenuMode","String.String"],"UserSelectedMode":["Main.FormField","String.String"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Main.FormField":{"args":[],"tags":{"Field1":[],"Field2":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Main.MenuMode":{"args":[],"tags":{"Completions":[],"Fieldnames":[]}},"Main.MenuMsg":{"args":[],"tags":{"MenuKeyDown":["Basics.Int"],"MenuMouseClick":["String.String"],"MenuMouseEnter":["String.String"],"MenuMouseLeave":["String.String"],"MenuWentTooHigh":[],"MenuWentTooLow":[],"NoMenuOp":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}}}}})}});}(this));
