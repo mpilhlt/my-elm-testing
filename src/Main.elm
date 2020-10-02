@@ -563,7 +563,6 @@ update msg model =
         SetSomeState autoMsg ->
             let
 
-{- This is what I need to detect from autoMsg somehow: -}
                 (openMenuField, mode) =
                     case model.focused of
                         Just (a, b) ->
@@ -571,8 +570,6 @@ update msg model =
                         
                         Nothing ->
                             (Field1, Completions)
-
-{- End of what I need to detect -}
 
                 crit =
                     getCritFromSearch openMenuField model
@@ -812,47 +809,6 @@ updateMenu config msg howManyToShow state data =
 
         NoMenuOp ->
             ( state, Nothing )
-
-
-resetMouseStateWithId : String -> MenuState -> MenuState
-resetMouseStateWithId id state =
-    { key = Just id, mouse = Just id }
-
-
-navigateWithKey : Int -> List String -> Maybe String -> Maybe String
-navigateWithKey code ids maybeId =
-    case code of
-        38 ->
-            Maybe.map (getPreviousItemId ids) maybeId
-
-        40 ->
-            Maybe.map (getNextItemId ids) maybeId
-
-        _ ->
-            maybeId
-
-
-getPreviousItemId : List String -> String -> String
-getPreviousItemId ids selectedId =
-    Maybe.withDefault selectedId (List.foldr (getPrevious selectedId) Nothing ids)
-
-
-getPrevious : String -> String -> Maybe String -> Maybe String
-getPrevious id selectedId resultId =
-    if selectedId == id then
-        Just id
-
-    else if Maybe.withDefault "" resultId == id then
-        Just selectedId
-
-    else
-        resultId
-
-
-getNextItemId : List String -> String -> String
-getNextItemId ids selectedId =
-    Maybe.withDefault selectedId (List.foldl (getPrevious selectedId) Nothing ids)
-
 
 
 
@@ -1140,6 +1096,10 @@ viewItem { toId, li } { key, mouse } data =
     Html.li customLiAttr (List.map (Html.map (\_ -> NoMenuOp)) listItemData.children)
 
 
+
+-- Menu manipulation/interaction
+
+
 reset : MenuUpdateConfig msg data -> MenuState
 reset _ =
     emptyMenuState
@@ -1227,6 +1187,46 @@ resetMenu formField mode model =
             setCritToSearch formField newField model
     in
     newModel
+
+
+resetMouseStateWithId : String -> MenuState -> MenuState
+resetMouseStateWithId id state =
+    { key = Just id, mouse = Just id }
+
+
+navigateWithKey : Int -> List String -> Maybe String -> Maybe String
+navigateWithKey code ids maybeId =
+    case code of
+        38 ->
+            Maybe.map (getPreviousItemId ids) maybeId
+
+        40 ->
+            Maybe.map (getNextItemId ids) maybeId
+
+        _ ->
+            maybeId
+
+
+getPreviousItemId : List String -> String -> String
+getPreviousItemId ids selectedId =
+    Maybe.withDefault selectedId (List.foldr (getPrevious selectedId) Nothing ids)
+
+
+getPrevious : String -> String -> Maybe String -> Maybe String
+getPrevious id selectedId resultId =
+    if selectedId == id then
+        Just id
+
+    else if Maybe.withDefault "" resultId == id then
+        Just selectedId
+
+    else
+        resultId
+
+
+getNextItemId : List String -> String -> String
+getNextItemId ids selectedId =
+    Maybe.withDefault selectedId (List.foldl (getPrevious selectedId) Nothing ids)
 
 
 removeMenuSelection : FormField -> MenuMode -> Model -> Model
@@ -1326,6 +1326,8 @@ setQuery id formField mode model =
     in
     newModel
 
+
+-- helper functions
 
 acceptableSuggestions : String -> (a -> String) -> List a -> List a
 acceptableSuggestions s toId options =
